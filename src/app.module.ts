@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { session } from 'telegraf';
 import { AutoLoudModule } from './auto-loud/auto-loud.module';
+import { UtilModule } from './util/util.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AutoLoudModule } from './auto-loud/auto-loud.module';
     BotModul,
     PrismaModule,
     AutoLoudModule,
+    UtilModule,
   ],
 })
 export class AppModule {}

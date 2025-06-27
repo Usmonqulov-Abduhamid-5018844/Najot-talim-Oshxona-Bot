@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { Action, Ctx, Hears, On, Start, Update } from 'nestjs-telegraf';
+import {
+  Action,
+  Command,
+  Ctx,
+  Hears,
+  On,
+  Start,
+  Update,
+} from 'nestjs-telegraf';
 import { BotService } from './bot.service';
 import { IMyContext } from 'src/helpers/bot.sessin';
-
+const ChatID_1 = process.env.ChatID_1;
 @Update()
 @Injectable()
 export class BotUpdate {
@@ -10,7 +18,7 @@ export class BotUpdate {
 
   @Start()
   onStart(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id === 5107358906) {
+    if (ctx.from?.id == ChatID_1) {
       return this.botService.onStartAdmin(ctx);
     } else {
       return this.botService.onStart(ctx);
@@ -19,7 +27,40 @@ export class BotUpdate {
 
   @Hears("Admin Paneliga o'tish")
   onStartAdmin(@Ctx() ctx: IMyContext) {
-    return this.botService.onAdmineditMenyu(ctx);
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.onAdmineditMenyu(ctx);
+    } else {
+      ctx.reply("Admin paneliga o'taolmaysiz");
+      return;
+    }
+  }
+  @Command('menu')
+  onMenue(@Ctx() ctx: IMyContext) {
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.onAdmineditMenyu(ctx);
+    } else {
+      return this.botService.onUserAllMenyu(ctx);
+    }
+  }
+  @Command('info')
+  onInfo(@Ctx() ctx: IMyContext) {
+    return this.botService.onInfo(ctx);
+  }
+  @Command('ortga')
+  OnOrtga(@Ctx() ctx: IMyContext) {
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.onStartAdmin(ctx);
+    } else {
+      return this.botService.onStart(ctx);
+    }
+  }
+  @Command('help')
+  OnHelp(@Ctx() ctx: IMyContext) {
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.OnHelp(ctx);
+    } else {
+      return this.botService.onhelp(ctx);
+    }
   }
 
   @Hears('Menyu')
@@ -28,7 +69,12 @@ export class BotUpdate {
   }
   @Hears('Orqaga qaytish')
   Ortga(@Ctx() ctx: IMyContext) {
-    return this.botService.onAdmineditMenyu(ctx);
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.onAdmineditMenyu(ctx);
+    } else {
+      ctx.reply("Siz admin paneliga o'ta olmaysiz");
+      return;
+    }
   }
 
   @Hears('Help')
@@ -45,21 +91,35 @@ export class BotUpdate {
   }
   @On('photo')
   OnPhoto(@Ctx() ctx: IMyContext) {
-    return this.botService.OnPhoto(ctx);
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.OnPhoto(ctx);
+    } else {
+      ctx.reply('Siz rasim yubora olmaysiz');
+      return;
+    }
   }
 
   @Action('Create')
   createAction(@Ctx() ctx: IMyContext) {
-    return this.botService.create(ctx);
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.create(ctx);
+    } else {
+      ctx.reply("Siz admin paneliga o'ta olmaysiz");
+      return;
+    }
   }
-
   @Action('findAll')
   find_all(@Ctx() ctx: IMyContext) {
     return this.botService.findAll(ctx);
   }
   @Action('Delete')
   delet(@Ctx() ctx: IMyContext) {
-    return this.botService.delet(ctx);
+    if (ctx.from?.id == ChatID_1) {
+      return this.botService.delet(ctx);
+    } else {
+      ctx.reply("Siz admin paneliga o'ta olmaysiz");
+      return;
+    }
   }
 
   //UUUUUUUUUUUUUUUUZZZZZZZZZZZZZZZZZZZZZZEEEEEEEEEEEEEEEEEEEEEEERRRRRRRRRRRRRRRRRRRR
@@ -77,29 +137,28 @@ export class BotUpdate {
   xonim(@Ctx() ctx: IMyContext) {
     return this.botService.xonim(ctx);
   }
-  @Action("jarkop")
-  jarkop(@Ctx()ctx:IMyContext){
-    return this.botService.jarkop(ctx)
+  @Action('jarkop')
+  jarkop(@Ctx() ctx: IMyContext) {
+    return this.botService.jarkop(ctx);
   }
 
-  @Action("kfc")
-  kfc(@Ctx()ctx:IMyContext){
-    return this.botService.kfc(ctx)
+  @Action('kfc')
+  kfc(@Ctx() ctx: IMyContext) {
+    return this.botService.kfc(ctx);
   }
 
-  @Action("somsa")
-  somsa(@Ctx()ctx:IMyContext){
-    return this.botService.somsa(ctx)
+  @Action('somsa')
+  somsa(@Ctx() ctx: IMyContext) {
+    return this.botService.somsa(ctx);
   }
 
-  @Action("bishtex")
-  bishtex(@Ctx()ctx:IMyContext){
-    return this.botService.bishtex(ctx)
-  }  
+  @Action('bishtex')
+  bishtex(@Ctx() ctx: IMyContext) {
+    return this.botService.bishtex(ctx);
+  }
 
-  @Action("lagmon")
-  lagmon(@Ctx()ctx:IMyContext){
-    return this.botService.lagmon(ctx)
-  } 
-
+  @Action('lagmon')
+  lagmon(@Ctx() ctx: IMyContext) {
+    return this.botService.lagmon(ctx);
+  }
 }

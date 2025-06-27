@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Controller('auto-loud')
 export class AutoLoudController {
   constructor(private readonly prisma: PrismaService) {}
-  @Cron(CronExpression.EVERY_2_HOURS, {
+  @Cron(CronExpression.EVERY_10_MINUTES, {
     timeZone: 'Asia/Tashkent',
   })
   async avg_Reyting() {
