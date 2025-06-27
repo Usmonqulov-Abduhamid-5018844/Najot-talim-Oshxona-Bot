@@ -16,10 +16,10 @@ datasource db {
 model Menyu {
   id          Int       @id @default(autoincrement())
   name        String?
-  avg_reytig  Float? @default(0)
+  avg_reytig  Float?    @default(0)
   price       Int?
   description String?
-  image String?
+  image       String?
   Reyting     Reyting[]
 }
 
@@ -27,5 +27,16 @@ model Reyting {
   id       Int   @id @default(autoincrement())
   ball     Int
   menyu_id Int
+  user_id  Int
   menyu    Menyu @relation(fields: [menyu_id], references: [id])
+  user     User  @relation(fields: [user_id], references: [id])
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  first_name String?
+  chat_id    BigInt?
+  is_bot     Boolean?
+
+  Reyting Reyting[]
 }

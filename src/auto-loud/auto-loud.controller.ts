@@ -5,7 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Controller('auto-loud')
 export class AutoLoudController {
   constructor(private readonly prisma: PrismaService) {}
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  @Cron(CronExpression.EVERY_2_HOURS, {
     timeZone: 'Asia/Tashkent',
   })
   async avg_Reyting() {
@@ -39,18 +39,12 @@ export class AutoLoudController {
     }
   }
 
-  @Cron(CronExpression.EVERY_2ND_MONTH, {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     timeZone: 'Asia/Tashkent',
   })
   async DeletReyting() {
     try {
-      const data = await this.prisma.reyting.findMany();
-
-      if (data.length) {
-        for (let Reyting of data) {
-          await this.prisma.reyting.delete({ where: { id: Reyting.id } });
-        }
-      }
+      await this.prisma.reyting.deleteMany();
     } catch (error) {
       console.log(error.message);
     }

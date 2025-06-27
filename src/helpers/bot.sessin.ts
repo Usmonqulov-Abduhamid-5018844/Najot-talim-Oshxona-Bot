@@ -11,7 +11,7 @@ export interface ISessin {
   bishtex: string | null
   xonim: string | null
   lagmon: string |null
-  Jarkop: string |null
+  jarkop: string |null
   kfc: string | null
   somsa: string |null
 

@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { strict } from 'assert';
-import { Ctx, Phone } from 'nestjs-telegraf';
-import { CerateInterface, IMyContext } from 'src/helpers/bot.sessin';
+import { IMyContext } from 'src/helpers/bot.sessin';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Markup } from 'telegraf';
 
@@ -38,6 +36,18 @@ export class BotService {
   }
 
   async onUserAllMenyu(ctx: IMyContext) {
+    ctx.session.bishtex = null
+    ctx.session.lagmon = null
+    ctx.session.kfc = null
+    ctx.session.jarkop = null
+    ctx.session.osh = null
+    ctx.session.somsa = null
+    ctx.session.xonim = null
+    ctx.session.data = null
+    ctx.session.lagmon = null
+    ctx.session.id = null
+    ctx.session.image = null
+    ctx.session.description = null
     try {
       await ctx.reply(
         `Ushbu menyudan birini tanyand`,
@@ -45,10 +55,11 @@ export class BotService {
           [Markup.button.callback('Osh', 'osh')],
           [Markup.button.callback('Xonim', 'xonim')],
           [Markup.button.callback('Jarkop', 'jarkop')],
-          [Markup.button.callback('KFC', ' kfs')],
-          [Markup.button.callback('Somsa', ' somsa')],
-          [Markup.button.callback('Bishtex', ' bishtex')],
-          [Markup.button.callback(`Lag'mon`, ` lag'mon`)],
+          [Markup.button.callback('KFC', 'kfc')],
+          [Markup.button.callback('Somsa', 'somsa')],
+          [Markup.button.callback('Bishtex', 'bishtex')],
+          [Markup.button.callback(`Lag'mon`, `lagmon`)],
+          [Markup.button.callback('Ortga', 'ortga')],
         ]),
       );
     } catch (error) {
@@ -57,14 +68,40 @@ export class BotService {
   }
 
   async onStart(ctx: IMyContext) {
+    ctx.session.bishtex = null
+    ctx.session.lagmon = null
+    ctx.session.kfc = null
+    ctx.session.jarkop = null
+    ctx.session.osh = null
+    ctx.session.somsa = null
+    ctx.session.xonim = null
+    ctx.session.data = null
+    ctx.session.lagmon = null
+    ctx.session.id = null
+    ctx.session.image = null
+    ctx.session.description = null
     try {
+      const user = await this.prisma.user.findFirst({
+        where: { chat_id: ctx.from?.id },
+      });
+      if (!user) {
+        await this.prisma.user.create({
+          data: {
+            first_name: ctx.from?.first_name,
+            chat_id: ctx.from?.id,
+            is_bot: ctx.from?.is_bot,
+          },
+        });
+      }
       await ctx.reply(
         `Botga hush kelibsiz  ${ctx.from?.first_name}`,
-        Markup.keyboard([['Menyu']])
+        Markup.keyboard([['Menyu', 'Reyting', 'Help']])
           .resize()
           .oneTime(),
       );
-    } catch (error) {}
+    } catch (error) {
+     await ctx.reply("❌ Xatolik yuz berdi?  keyinroq urinib qo'ying");
+    }
   }
 
   async create(ctx: IMyContext) {
@@ -75,7 +112,67 @@ export class BotService {
       return await ctx.reply('❌ Xatolik yuz berdi');
     }
   }
+  async onhelp(ctx: IMyContext) {
+    ctx.session.bishtex = null
+    ctx.session.lagmon = null
+    ctx.session.kfc = null
+    ctx.session.jarkop = null
+    ctx.session.osh = null
+    ctx.session.somsa = null
+    ctx.session.xonim = null
+    ctx.session.data = null
+    ctx.session.lagmon = null
+    ctx.session.id = null
+    ctx.session.image = null
+    ctx.session.description = null
+    await ctx.reply(
+      `📋 <b>Yordam bo'limi</b>\n
+    Assalomu alaykum! Bu bot orqali siz oshxonadagi taomlar bilan tanishishingiz va ularga baho berishingiz mumkin.\n
+    🧾 <b>Bot imkoniyatlari:</b>
+    
+    🍽 <b>Taomlar ro'yxati</b> - mavjud barcha taomlarni rasm, narx va tavsifi bilan ko'rishingiz mumkin.
+    
+    ⭐️ <b>Reyting berish</b> - har bir taomga 1 dan 5 gacha baho berishingiz mumkin.
+    
+    🏆 <b>Eng yuqori baholangan taomlar</b> - foydalanuvchilar tomonidan eng ko'p baholangan taomlarni ko'rishingiz mumkin.
+    
+    ❓ <b>Yordam</b> - ushbu bo'lim orqali botdan qanday foydalanishni bilib olasiz.
+    
+    Agar sizda savollar bo'lsa, admin bilan bog'laning: @Abduhamid_1852
+    
+    `,
+      { parse_mode: 'HTML' },
+    );
+  }
 
+  async onreyting(ctx: IMyContext) {
+    try {
+      const menyular = await this.prisma.menyu.findMany({
+        orderBy: { avg_reytig: 'desc' },
+      });
+
+      if (!menyular.length) {
+        await ctx.reply('🛑 Hozircha ovqatlar mavjud emas.');
+        return;
+      }
+
+      for (const item of menyular) {
+        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}`;
+
+        if (item.image) {
+          await ctx.replyWithPhoto(item.image, {
+            caption,
+            parse_mode: 'HTML',
+          });
+        } else {
+          await ctx.reply(caption, { parse_mode: 'HTML' });
+        }
+      }
+    } catch (error) {
+      await ctx.reply("❌ Xatolik yuz berdi?  Keyinroq urinib ko'ring.");
+    }
+    return;
+  }
   async textmessage(ctx: IMyContext) {
     ctx.session.data ??= {};
 
@@ -137,13 +234,350 @@ export class BotService {
         }
         await this.prisma.menyu.delete({ where: { id: R.id } });
         ctx.reply("✅  Muvofiyaqatli o'chirildi");
+        ctx.session.id = null
         return;
       } catch (error) {
-        console.log(error);
         ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
       }
     }
-    return;
+    //*************************************  MENU  **********************************
+
+    if (ctx.session.osh == 'osh' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'Osh' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+      ctx.session.osh = null
+    }
+
+    if (ctx.session.xonim == 'xonim' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'Xonim' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+      ctx.session.xonim = null
+    }
+
+    if (ctx.session.jarkop == 'jarkop' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'Jarkop' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+        ctx.session.jarkop = null
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+    }
+
+    if (ctx.session.kfc == 'kfc' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'KFC' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+        ctx.session.kfc = null
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+    }
+    
+    if (ctx.session.somsa == 'somsa' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'Somsa' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+        ctx.session.somsa = null
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+    }
+
+    if (ctx.session.bishtex == 'bishtex' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: 'Bishtex' },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+        ctx.session.bishtex = null
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+    }
+
+    if (ctx.session.lagmon == 'lagmon' && ctx.message && 'text' in ctx.message) {
+      try {
+        const Menyu = await this.prisma.menyu.findFirst({
+          where: { name: "Lag'mon" },
+        });
+        if (!Menyu) {
+          await ctx.reply(
+            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
+          );
+          return;
+        }
+        const ball = parseInt(ctx.message.text);
+        if (isNaN(ball)) {
+          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
+          return;
+        }
+        if (!(ball >= 1 && ball <= 5)) {
+          await ctx.reply(
+            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
+          );
+          return;
+        }
+        const user = await this.prisma.user.findFirst({
+          where: { chat_id: ctx.from?.id },
+        });
+        if (!user) {
+          await ctx.reply('❌ User malumotlari tipilmadi');
+          return;
+        }
+        const reyting = await this.prisma.reyting.findFirst({
+          where: { user_id: user.id, menyu_id: Menyu.id },
+        });
+        if (reyting) {
+          await ctx.reply(
+            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
+          );
+          return;
+        }
+        await this.prisma.reyting.create({
+          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
+        });
+        ctx.session.lagmon = null
+      } catch (error) {
+        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
+        return
+      }
+    }
+    return
   }
 
   async OnPhoto(ctx: IMyContext) {
@@ -189,20 +623,20 @@ export class BotService {
       }
 
       for (const item of menyular) {
-        if (!item.image) {
-          await ctx.reply(`⚠️ ${item.name} uchun rasm topilmadi.`);
-          continue;
-        }
+        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}`;
 
-        await ctx.replyWithPhoto(item.image, {
-          caption: `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}`,
-          parse_mode: 'HTML',
-        });
+        if (item.image) {
+          await ctx.replyWithPhoto(item.image, {
+            caption,
+            parse_mode: 'HTML',
+          });
+        } else {
+          await ctx.reply(caption, { parse_mode: 'HTML' });
+        }
       }
     } catch (error) {
-      await ctx.reply("❗️ Xatolik yuz berdi?  Keyinroq urinib ko'ring.");
-      ctx.reply(
-        'Ortga',
+      await ctx.reply(
+        "❗️ Xatolik yuz berdi?  Keyinroq urinib ko'ring.",
         Markup.keyboard([['Orqaga qaytish']])
           .resize()
           .oneTime(),
@@ -222,7 +656,51 @@ export class BotService {
 
   async osh(ctx: IMyContext) {
     ctx.reply(
-      "Siz Oshni tanladingiz ushbu tavom uchun reyting qoldiring va reyting g'oliblari keyingi kuni oshxonada sizni qarshi oladi.(eslatma )",
+      "Siz Osh taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
     );
+    ctx.session.osh = 'osh';
   }
+
+  async xonim(ctx: IMyContext) {
+    ctx.reply(
+      "Siz Xonim taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.xonim = 'xonim';
+  }
+
+  async jarkop(ctx: IMyContext) {
+    ctx.reply(
+      "Siz jarkop taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.jarkop = 'jarkop';
+  }
+
+  async kfc(ctx: IMyContext) {
+    ctx.reply(
+      "Siz KFC taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.kfc = 'kfc';
+  }
+
+  async somsa(ctx: IMyContext) {
+    ctx.reply(
+      "Siz somsa taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.somsa = 'somsa';
+  }
+
+  async bishtex(ctx: IMyContext) {
+    ctx.reply(
+      "Siz bishtex taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.bishtex = 'bishtex';
+  }
+
+  async lagmon(ctx: IMyContext) {
+    ctx.reply(
+      "Siz lag'mon taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
+    );
+    ctx.session.lagmon = 'lagmon';
+  }
+
 }
