@@ -9,11 +9,12 @@ export class BotService {
 
   async onStartAdmin(ctx: IMyContext) {
     try {
-      await ctx.reply(
-        `Botga xush kelibsiz ${ctx.from?.first_name}`,
-        Markup.keyboard([["Admin Paneliga o'tish"]])
-          .resize()
-          .oneTime(),
+      ctx.session.stepAdmin = 'Asosiy';
+      ctx.reply(
+        `Siz asosiy sahifadasiz`,
+        Markup.keyboard([
+          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+        ]).resize(),
       );
     } catch (error) {
       return ctx.reply('❌ Xatolik yuz berdi');
@@ -36,38 +37,6 @@ export class BotService {
       );
     } catch (error) {
       return ctx.reply('❌ Xatolik yuz berdi');
-    }
-  }
-
-  async onUserAllMenyu(ctx: IMyContext) {
-    ctx.session.bishtex = null;
-    ctx.session.lagmon = null;
-    ctx.session.kfc = null;
-    ctx.session.jarkop = null;
-    ctx.session.osh = null;
-    ctx.session.somsa = null;
-    ctx.session.xonim = null;
-    ctx.session.data = null;
-    ctx.session.lagmon = null;
-    ctx.session.id = null;
-    ctx.session.image = null;
-    ctx.session.description = null;
-    try {
-      await ctx.reply(
-        `Ushbu menyudan birini tanlayng`,
-        Markup.inlineKeyboard([
-          [Markup.button.callback('Osh', 'osh')],
-          [Markup.button.callback('Xonim', 'xonim')],
-          [Markup.button.callback('Jarkop', 'jarkop')],
-          [Markup.button.callback('KFC', 'kfc')],
-          [Markup.button.callback('Somsa', 'somsa')],
-          [Markup.button.callback('Bishtex', 'bishtex')],
-          [Markup.button.callback(`Lag'mon`, `lagmon`)],
-          [Markup.button.callback('Ortga', 'ortga')],
-        ]),
-      );
-    } catch (error) {
-      return ctx.reply('Xatolik yuz berdi');
     }
   }
 
@@ -97,11 +66,10 @@ export class BotService {
           },
         });
       }
+      ctx.session.stepUser = 'menyu';
       await ctx.reply(
-        `Botga hush kelibsiz  ${ctx.from?.first_name}`,
-        Markup.keyboard([['Menyu', 'Reyting', 'Help']])
-          .resize()
-          .oneTime(),
+        `Botga hush kelibsiz ${ctx.from?.first_name || 'Hurmatli foydalanuvchi'}`,
+        Markup.keyboard([['Reyting qoldirish', `Menyularni ko'rish`]]).resize(),
       );
     } catch (error) {
       await ctx.reply("❌ Xatolik yuz berdi?  keyinroq urinib qo'ying");
@@ -116,6 +84,66 @@ export class BotService {
       return await ctx.reply('❌ Xatolik yuz berdi');
     }
   }
+  async Kunlik(ctx: IMyContext) {
+    try {
+      const kunlikFoydalanuvchilar = await this.prisma.reyting.findMany({
+        select: {
+          user_id: true,
+        },
+        distinct: ['user_id'],
+      });
+
+      const soni = kunlikFoydalanuvchilar.length;
+
+      ctx.reply(`📊 Bugungi foydalanuvchilar soni: ${soni} ta`);
+      return;
+    } catch (error) {
+      return ctx.reply(
+        `❌ Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.`,
+      );
+    }
+  }
+
+  //******************************  USER  ************************/
+
+
+  async onUserAllMenyu(ctx: IMyContext) {
+    ctx.session.bishtex = null;
+    ctx.session.lagmon = null;
+    ctx.session.kfc = null;
+    ctx.session.jarkop = null;
+    ctx.session.osh = null;
+    ctx.session.somsa = null;
+    ctx.session.xonim = null;
+    ctx.session.data = null;
+    ctx.session.lagmon = null;
+    ctx.session.id = null;
+    ctx.session.image = null;
+    ctx.session.description = null;
+    try {
+      const menyular = await this.prisma.menyu.findMany({ orderBy: { id: 'asc' } });
+  
+      if (!menyular.length) {
+        return ctx.reply("❌ Hech qanday menyu topilmadi.");
+      }
+  
+      const buttonlar = menyular.map((menu) => [
+        Markup.button.callback(menu.name!, `menu:${menu.name!.toLowerCase()}`),
+      ]);
+  
+      buttonlar.push([Markup.button.callback('Ortga', 'ortga')]);
+  
+      await ctx.reply(
+        `Ushbu menyulardan birini tanlang 👇`,
+        Markup.inlineKeyboard(buttonlar),
+      );
+    } catch (error) {
+      console.error(error);
+      return ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
+    }
+  }
+  
+
   async onhelp(ctx: IMyContext) {
     ctx.session.bishtex = null;
     ctx.session.lagmon = null;
@@ -131,7 +159,7 @@ export class BotService {
     ctx.session.description = null;
     await ctx.reply(
       `📋 <b>Yordam bo'limi</b>\n
-    Assalomu alaykum! ${ctx.from?.first_name}   Bu bot orqali siz oshxonadagi taomlar bilan tanishishingiz va ularga baho berishingiz mumkin.\n
+    Assalomu alaykum! ${ctx.from?.first_name || 'Hurmatli foydalanuvchi'}   Bu bot orqali siz oshxonadagi taomlar bilan tanishishingiz va ularga baho berishingiz mumkin.\n
     🧾 <b>Bot imkoniyatlari:</b>
     
     🍽 <b>Taomlar ro'yxati</b> - mavjud barcha taomlarni rasm, narx va tavsifi bilan ko'rishingiz mumkin.
@@ -149,14 +177,14 @@ export class BotService {
     );
   }
 
-  async OnHelp(ctx:IMyContext){
+  async OnHelp(ctx: IMyContext) {
     ctx.session.data = null;
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;
     await ctx.reply(
       `📋 <b>Admin Yordam Bo'limi</b>\n
-    Assalomu alaykum, ${ctx.from?.first_name}!\n
+    Assalomu alaykum, ${ctx.from?.first_name || 'Hurmatli foydalanuvchi'}!\n
     Siz admin sifatida quyidagi imkoniyatlarga egasiz:
     
     👨‍🍳 <b>Yangi ovqat qo'shish:</b> menyuga yangi taomlar, ularning nomi, narxi, tavsifi va rasm bilan qo'shishingiz mumkin.
@@ -173,11 +201,35 @@ export class BotService {
     `,
       { parse_mode: 'HTML' },
     );
-    
+  }
+
+  async onOrtga(ctx: IMyContext) {
+    try {
+      if (ctx.session.stepUser == 'menyu') {
+        await ctx.reply(
+          `Siz menyu oynasidasiz`,
+          Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+        );
+        return
+      }
+      if (ctx.session.stepUser == 'reyting') {
+        await ctx.reply(
+          `Siz menyu oynasiga o'tdingiz`,
+          Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+        );
+        return
+      }
+      if ((ctx.session.stepUser = 'Tavom')) {
+        return this.onUserAllMenyu(ctx)
+      }
+    } catch (error) {
+      ctx.reply("❌ Xatolik yuz berdi?  Keyinrok urinib ko'ring");
+    }
   }
 
   async onreyting(ctx: IMyContext) {
     try {
+      ctx.session.stepUser = 'reyting';
       const menyular = await this.prisma.menyu.findMany({
         orderBy: { avg_reytig: 'desc' },
       });
@@ -220,16 +272,15 @@ export class BotService {
     try {
       ctx.reply(
         `👤 <b>Foydalanuvchi ma'lumotlari</b>\n\n` +
-        `📛 <b>Username:</b> @${ctx.from?.username || `Noma'lum`}\n` +
-        `🧍 <b>Ismi:</b> ${ctx.from?.first_name || `Noma'lum`}\n` +
-        `🧍‍♂️ <b>Familiyasi:</b> ${ctx.from?.last_name || `Yo'q`}\n` +
-        `🆔 <b>Chat ID:</b> ${ctx.from?.id}\n` +
-        `🌐 <b>Til kodi:</b> ${ctx.from?.language_code || `Noma'lum`}\n` +
-        `💎 <b>Premium foydalanuvchi:</b> ${ctx.from?.is_premium ? 'Ha' : `Yo'q`}\n` +
-        `🤖 <b>Botmi:</b> ${ctx.from?.is_bot ? 'Ha' : `Yo'q`}`,
-        { parse_mode: 'HTML' }
+          `📛 <b>Username:</b> @${ctx.from?.username || `Noma'lum`}\n` +
+          `🧍 <b>Ismi:</b> ${ctx.from?.first_name || `Noma'lum`}\n` +
+          `🧍‍♂️ <b>Familiyasi:</b> ${ctx.from?.last_name || `Yo'q`}\n` +
+          `🆔 <b>Chat ID:</b> ${ctx.from?.id}\n` +
+          `🌐 <b>Til kodi:</b> ${ctx.from?.language_code || `Noma'lum`}\n` +
+          `💎 <b>Premium foydalanuvchi:</b> ${ctx.from?.is_premium ? 'Ha' : `Yo'q`}\n` +
+          `🤖 <b>Botmi:</b> ${ctx.from?.is_bot ? 'Ha' : `Yo'q`}`,
+        { parse_mode: 'HTML' },
       );
-      
     } catch (error) {
       ctx.reply('❌ Xatolik yuz berdi');
     }
@@ -246,6 +297,12 @@ export class BotService {
       ctx.session.data.name = ctx.message.text;
       ctx.session.name = null;
       ctx.session.price = 'price';
+      await ctx.reply(
+        'Davom etamiz...',
+        Markup.keyboard([['Ortga']])
+          .resize()
+          .persistent(),
+      );
       await ctx.reply('📥 Mahsulot narxini kiriting:');
       return;
     }
@@ -264,6 +321,12 @@ export class BotService {
       ctx.session.data.price = price;
       ctx.session.price = null;
       ctx.session.description = 'description';
+      await ctx.reply(
+        'Davom etamiz...',
+        Markup.keyboard([['Ortga']])
+          .resize()
+          .persistent(),
+      );
       await ctx.reply('📥 Mahsulot haqida tavsif kiriting:');
       return;
     }
@@ -277,389 +340,26 @@ export class BotService {
       ctx.session.data.description = ctx.message.text;
       ctx.session.description = null;
       ctx.session.image = 'img';
+      await ctx.reply(
+        'Davom etamiz...',
+        Markup.keyboard([['Ortga']])
+          .resize()
+          .persistent(),
+      );
       await ctx.reply('📸 Mahsulot rasmini yuboring:');
       return;
     }
-    if (ctx.session.id == 'id' && ctx.message && 'text' in ctx.message) {
-      try {
-        const id = parseInt(ctx.message.text);
-
-        if (isNaN(id)) {
-          await ctx.reply('❌ Iltimos,faqat id kiriting!');
-          return;
-        }
-        const R = await this.prisma.menyu.findUnique({ where: { id } });
-        if (!R) {
-          ctx.reply(`${id} Bunday id topilmadi`);
-          return;
-        }
-        await this.prisma.menyu.delete({ where: { id: R.id } });
-        ctx.reply("✅  Muvofiyaqatli o'chirildi");
-        ctx.session.id = null;
-        return;
-      } catch (error) {
-        ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-      }
+    if (ctx.session.image == 'img') {
+      await ctx.reply(
+        'Davom etamiz...',
+        Markup.keyboard([['Ortga']])
+          .resize()
+          .persistent(),
+      );
+      await ctx.reply('📸 Mahsulot rasmini yuboring:');
+      return;
     }
-    //*************************************  MENU  **********************************
-
-    if (ctx.session.osh == 'osh' && ctx.message && 'text' in ctx.message) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'Osh' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-      ctx.session.osh = null;
-    }
-
-    if (ctx.session.xonim == 'xonim' && ctx.message && 'text' in ctx.message) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'Xonim' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-      ctx.session.xonim = null;
-    }
-
-    if (
-      ctx.session.jarkop == 'jarkop' &&
-      ctx.message &&
-      'text' in ctx.message
-    ) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'Jarkop' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-        ctx.session.jarkop = null;
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-    }
-
-    if (ctx.session.kfc == 'kfc' && ctx.message && 'text' in ctx.message) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'KFC' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-        ctx.session.kfc = null;
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-    }
-
-    if (ctx.session.somsa == 'somsa' && ctx.message && 'text' in ctx.message) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'Somsa' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-        ctx.session.somsa = null;
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-    }
-
-    if (
-      ctx.session.bishtex == 'bishtex' &&
-      ctx.message &&
-      'text' in ctx.message
-    ) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: 'Bishtex' },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-        ctx.session.bishtex = null;
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-    }
-
-    if (
-      ctx.session.lagmon == 'lagmon' &&
-      ctx.message &&
-      'text' in ctx.message
-    ) {
-      try {
-        const Menyu = await this.prisma.menyu.findFirst({
-          where: { name: "Lag'mon" },
-        });
-        if (!Menyu) {
-          await ctx.reply(
-            "❌ Kechirasiz siz tanlagan taom bazadan vaxtinchalik o'chirilgan",
-          );
-          return;
-        }
-        const ball = parseInt(ctx.message.text);
-        if (isNaN(ball)) {
-          await ctx.reply('❌ Iltimos faqat raqam kiriting!');
-          return;
-        }
-        if (!(ball >= 1 && ball <= 5)) {
-          await ctx.reply(
-            '❌ Reytingniga 1 dan 5 gachga oraliqda raqam kritish mumkin',
-          );
-          return;
-        }
-        const user = await this.prisma.user.findFirst({
-          where: { chat_id: ctx.from?.id },
-        });
-        if (!user) {
-          await ctx.reply('❌ User malumotlari tipilmadi');
-          return;
-        }
-        const reyting = await this.prisma.reyting.findFirst({
-          where: { user_id: user.id, menyu_id: Menyu.id },
-        });
-        if (reyting) {
-          await ctx.reply(
-            '❌ Siz avval ushbu tavom uchun reyting qoldirgansiz',
-          );
-          return;
-        }
-        await this.prisma.reyting.create({
-          data: { user_id: user.id, menyu_id: Menyu.id, ball: ball },
-        });
-        await ctx.reply(`✅ Reyting Muvofiyaqatliy qo'yildi`)
-        ctx.session.lagmon = null;
-      } catch (error) {
-        await ctx.reply(`❌ Xatolik yoz berdi?  keyinroq urinib ko'ring`);
-        return;
-      }
-    }
-    return;
   }
-
   async OnPhoto(ctx: IMyContext) {
     ctx.session.data ??= {};
 
@@ -673,19 +373,20 @@ export class BotService {
       const { name, price, description, image } = ctx.session.data;
 
       if (name && price && description && image) {
-        const yangi = await this.prisma.menyu.create({
-          data: { name, price, description, image },
-        });
-
         await ctx.replyWithPhoto(image, {
-          caption: `✅ Saqlandi!\n🍽 <b>${name}</b>\n💰 ${price} so'm\n📝 ${description}`,
+          caption: `📝 Ma'lumotlar:\n🍽 <b>${name}</b>\n💰 ${price} so'm\n📄 ${description}\n\n✅ Saqlashni xohlaysizmi?`,
           parse_mode: 'HTML',
+          ...Markup.inlineKeyboard([
+            [Markup.button.callback('✅ Saqlash', 'save_menu')],
+            [Markup.button.callback('🔙 Bekor qilish', 'cancel_save')],
+          ]),
         });
         return;
       } else {
         return await ctx.reply("❌ Ma'lumotlar to'liq emas!");
       }
     }
+
     ctx.session.data = null;
     ctx.session.image = null;
     return;
@@ -714,6 +415,10 @@ export class BotService {
           await ctx.reply(caption, { parse_mode: 'HTML' });
         }
       }
+      await ctx.reply(
+        "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan!</b>",
+        { parse_mode: 'HTML' },
+      );
     } catch (error) {
       await ctx.reply(
         "❗️ Xatolik yuz berdi?  Keyinroq urinib ko'ring.",
@@ -727,66 +432,56 @@ export class BotService {
 
   async delet(ctx: IMyContext) {
     try {
-      ctx.reply("O'chirmiqchi bo'lgan ovqat id sini kriting: ");
-      ctx.session.id = 'id';
+      const menyular = await this.prisma.menyu.findMany();
+
+      if (!menyular.length) {
+        await ctx.reply('🛑 Hozircha ovqatlar mavjud emas.');
+        return;
+      }
+
+      const buttons = menyular.map((menu) => [
+        Markup.button.callback(menu.name || 'Nomalum', `del:${menu.id}`),
+      ]);
+
+      await ctx.answerCbQuery();
+      await ctx.reply(
+        "🗑 O'chirmoqchi bo'lgan ovqatni tanlang:",
+        Markup.inlineKeyboard(
+          menyular.map((menu) => [
+            Markup.button.callback(
+              menu.name?.trim() ? menu.name : `ID:${menu.id}`,
+              `del:${menu.id}`,
+            ),
+          ]),
+        ),
+      );
     } catch (error) {
-      return ctx.reply("❌ Xatolik yuz berdi?  Keyinroq urinib ko'ring.");
+      console.error(error);
+      return ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
     }
   }
 
-  async osh(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz Osh taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
+  async sendReytingPrompt(ctx: IMyContext, menuName: string) {
+    await ctx.answerCbQuery();
+  
+    await ctx.reply(
+      `🍽 Siz <b>${menuName}</b> taomini tanladingiz.\nReyting bering (1-5):`,
+      {
+        parse_mode: 'HTML',
+        reply_markup: Markup.inlineKeyboard([
+          [
+            Markup.button.callback('1', 'reyting:1'),
+            Markup.button.callback('2', 'reyting:2'),
+            Markup.button.callback('3', 'reyting:3'),
+            Markup.button.callback('4', 'reyting:4'),
+            Markup.button.callback('5', 'reyting:5'),
+          ],
+        ]).reply_markup,
+      },
     );
-    ctx.session.osh = 'osh';
+    
   }
 
-  async xonim(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz Xonim taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
-    );
-    ctx.session.xonim = 'xonim';
-  }
-
-  async jarkop(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz jarkop taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
-    );
-    ctx.session.jarkop = 'jarkop';
-  }
-
-  async kfc(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz KFC taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
-    );
-    ctx.session.kfc = 'kfc';
-  }
-
-  async somsa(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz somsa taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
-    );
-    ctx.session.somsa = 'somsa';
-  }
-
-  async bishtex(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Siz bishtex taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi',
-    );
-    ctx.session.bishtex = 'bishtex';
-  }
-
-  async lagmon(ctx: IMyContext) {
-    ctx.answerCbQuery()
-    ctx.reply(
-      "Siz lag'mon taomini tanladingiz. Reyting bering (1-5). Eng yuqori baholangan taomlar ertasi kuni oshxonada taqdim etiladi",
-    );
-    ctx.session.lagmon = 'lagmon';
-  }
+  
+  
 }

@@ -28,7 +28,7 @@ model Reyting {
   ball     Int
   menyu_id Int
   user_id  Int
-  menyu    Menyu @relation(fields: [menyu_id], references: [id])
+  menyu    Menyu @relation(fields: [menyu_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user     User  @relation(fields: [user_id], references: [id])
 }
 
