@@ -69,7 +69,9 @@ export class BotService {
       ctx.session.stepUser = 'menyu';
       await ctx.reply(
         `Botga hush kelibsiz ${ctx.from?.first_name || 'Hurmatli foydalanuvchi'}`,
-        Markup.keyboard([['Reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+        Markup.keyboard([
+          ['📊 reyting qoldirish', `📖 Menyularni ko'rish`, '🙋🏼‍♂️ Help'],
+        ]).resize(),
       );
     } catch (error) {
       await ctx.reply("❌ Xatolik yuz berdi?  keyinroq urinib qo'ying");
@@ -106,7 +108,6 @@ export class BotService {
 
   //******************************  USER  ************************/
 
-
   async onUserAllMenyu(ctx: IMyContext) {
     ctx.session.bishtex = null;
     ctx.session.lagmon = null;
@@ -121,18 +122,20 @@ export class BotService {
     ctx.session.image = null;
     ctx.session.description = null;
     try {
-      const menyular = await this.prisma.menyu.findMany({ orderBy: { id: 'asc' } });
-  
+      const menyular = await this.prisma.menyu.findMany({
+        orderBy: { id: 'asc' },
+      });
+
       if (!menyular.length) {
-        return ctx.reply("❌ Hech qanday menyu topilmadi.");
+        return ctx.reply('❌ Hech qanday menyu topilmadi.');
       }
-  
+
       const buttonlar = menyular.map((menu) => [
         Markup.button.callback(menu.name!, `menu:${menu.name!.toLowerCase()}`),
       ]);
-  
+
       buttonlar.push([Markup.button.callback('Ortga', 'ortga')]);
-  
+
       await ctx.reply(
         `Ushbu menyulardan birini tanlang 👇`,
         Markup.inlineKeyboard(buttonlar),
@@ -142,7 +145,6 @@ export class BotService {
       return ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
     }
   }
-  
 
   async onhelp(ctx: IMyContext) {
     ctx.session.bishtex = null;
@@ -170,7 +172,7 @@ export class BotService {
     
     ❓ <b>Yordam</b> - ushbu bo'lim orqali botdan qanday foydalanishni bilib olasiz.
     
-    Agar sizda savollar bo'lsa, admin bilan bog'laning: @Abduhamid_1852
+    Agar sizda savollar bo'lsa, admin bilan bog'laning: @Abduhamid_1852 Yoki  @lm_faxa
     
     `,
       { parse_mode: 'HTML' },
@@ -197,7 +199,7 @@ export class BotService {
     
     🛠 <b>To'liq nazorat:</b> foydalanuvchilar faoliyati, reytinglar va taomlar haqida umumiy nazoratga egasiz.
     
-    Agar sizga texnik yordam kerak bo'lsa yoki muammo yuzaga kelsa, quyidagi kontakt orqali bog'laning: @Abduhamid_1852
+    Agar sizga texnik yordam kerak bo'lsa yoki muammo yuzaga kelsa, quyidagi kontakt orqali bog'laning: @Abduhamid_1852 Yoki @lm_faxa
     `,
       { parse_mode: 'HTML' },
     );
@@ -208,19 +210,23 @@ export class BotService {
       if (ctx.session.stepUser == 'menyu') {
         await ctx.reply(
           `Siz menyu oynasidasiz`,
-          Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+          Markup.keyboard([
+            ['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"],
+          ]).resize(),
         );
-        return
+        return;
       }
       if (ctx.session.stepUser == 'reyting') {
         await ctx.reply(
           `Siz menyu oynasiga o'tdingiz`,
-          Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+          Markup.keyboard([
+            ['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"],
+          ]).resize(),
         );
-        return
+        return;
       }
       if ((ctx.session.stepUser = 'Tavom')) {
-        return this.onUserAllMenyu(ctx)
+        return this.onUserAllMenyu(ctx);
       }
     } catch (error) {
       ctx.reply("❌ Xatolik yuz berdi?  Keyinrok urinib ko'ring");
@@ -463,7 +469,7 @@ export class BotService {
 
   async sendReytingPrompt(ctx: IMyContext, menuName: string) {
     await ctx.answerCbQuery();
-  
+
     await ctx.reply(
       `🍽 Siz <b>${menuName}</b> taomini tanladingiz.\nReyting bering (1-5):`,
       {
@@ -479,9 +485,5 @@ export class BotService {
         ]).reply_markup,
       },
     );
-    
   }
-
-  
-  
 }

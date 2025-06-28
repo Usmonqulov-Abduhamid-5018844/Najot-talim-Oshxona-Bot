@@ -13,6 +13,7 @@ import { IMyContext } from 'src/helpers/bot.sessin';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Markup } from 'telegraf';
 const ChatID_1 = process.env.ChatID_1;
+const ChatID_2 = process.env.ChatID_2;
 @Update()
 @Injectable()
 export class BotUpdate {
@@ -23,7 +24,7 @@ export class BotUpdate {
 
   @Start()
   onStart(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       return this.botService.onStartAdmin(ctx);
     } else {
       return this.botService.onStart(ctx);
@@ -31,7 +32,7 @@ export class BotUpdate {
   }
   @Hears('Asosiy sahifa')
   async Asosiy(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Asosiy';
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
@@ -131,7 +132,7 @@ export class BotUpdate {
           await ctx.reply(
             `Asosiy menyudasiz`,
             Markup.keyboard([
-              ['reyting qoldirish',`Menyularni ko'rish`],
+              ['📊 reyting qoldirish',`📖 Menyularni ko'rish`,"🙋🏼‍♂️ Help"],
             ]).resize(),
           );
         }
@@ -140,7 +141,7 @@ export class BotUpdate {
           await ctx.reply(
             `Uzoq vaqt foydalatilmagani sababli asosiy menyuga qaytildi`,
             Markup.keyboard([
-              ['reyting qoldirish',`Menyularni ko'rish`],
+              ['📊 reyting qoldirish',`📖 Menyularni ko'rish`,"🙋🏼‍♂️ Help"],
             ]).resize(),
           );
         }
@@ -150,7 +151,7 @@ export class BotUpdate {
 
   @Hears('Menyu')
   async onStartAdmin(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Menyu';
       await ctx.reply(
         `Menyu`,
@@ -165,7 +166,7 @@ export class BotUpdate {
 
   @Hears('Reyting')
   OnReyting(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Reyting';
       ctx.reply(
         `Reyting`,
@@ -174,10 +175,10 @@ export class BotUpdate {
       return this.botService.findAll(ctx);
     }
   }
-  @Hears("Menyularni ko'rish")
+  @Hears("📖 Menyularni ko'rish")
   OnMenyuler(@Ctx() ctx: IMyContext) {
     ctx.session.stepUser = 'menyu';
-    ctx.reply(`Menuylar`, Markup.keyboard([['ortga']]).resize());
+    ctx.reply(`Menuylar`, Markup.keyboard([['🔙 ortga']]).resize());
     return this.botService.findAll(ctx);
   }
 
@@ -190,7 +191,7 @@ export class BotUpdate {
 
   @Command('menyu')
   onMenue(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Menyu';
       return this.botService.onAdmineditMenyu(ctx);
     } else {
@@ -204,7 +205,7 @@ export class BotUpdate {
   }
   @Command('help')
   OnHelp(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       return this.botService.OnHelp(ctx);
     } else {
       return this.botService.onhelp(ctx);
@@ -212,19 +213,19 @@ export class BotUpdate {
   }
   @Hears('Orqaga qaytish')
   Ortga(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Menyu';
       return this.botService.onAdmineditMenyu(ctx);
     } else {
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
-        Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
       );
     }
   }
   @On('photo')
   OnPhoto(@Ctx() ctx: IMyContext) {
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       return this.botService.OnPhoto(ctx);
     } else {
       ctx.reply(`❌ Bu botga rasim yuborib bo'lmaydi`);
@@ -235,7 +236,7 @@ export class BotUpdate {
   @Action('Create')
   async createAction(@Ctx() ctx: IMyContext) {
     ctx.answerCbQuery();
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Creyt';
       await ctx.reply(
         'Tovar',
@@ -261,7 +262,7 @@ export class BotUpdate {
   @Action('Delete')
   delet(@Ctx() ctx: IMyContext) {
     ctx.answerCbQuery();
-    if (ctx.from?.id == ChatID_1) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Delet';
       ctx.reply(
         "Tavomlarni o'chirish",
@@ -333,27 +334,37 @@ export class BotUpdate {
   //******************************************* ADMIN ************************************⬆️ */
 
   //************************************************ USER *******************************⬇️ */
-  @Hears('reyting qoldirish')
+  @Hears('📊 reyting qoldirish')
   async onReytingUser(@Ctx() ctx: IMyContext) {
     ctx.session.stepUser = 'reyting';
-    await ctx.reply(`Menyu`, Markup.keyboard([['ortga']]).resize());
+    await ctx.reply(`Menyu`, Markup.keyboard([['🔙 ortga']]).resize());
     return this.botService.onUserAllMenyu(ctx);
   }
-  @Hears('ortga')
+  @Hears('🔙 ortga')
   onOrtga(@Ctx() ctx: IMyContext) {
     return this.botService.onOrtga(ctx);
   }
 
+  @Hears('🙋🏼‍♂️ Help')
+  onHelp(@Ctx() ctx:IMyContext){
+    if(ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2){
+      return this.botService.OnHelp(ctx)
+    }
+    else{
+      return this.botService.onhelp(ctx)
+    }
+  }
   @On('text')
   text(@Ctx() ctx: IMyContext) {
     return this.botService.textmessage(ctx);
   }
 
+
   @Action('ortga')
   async ortgamenu(@Ctx() ctx: IMyContext) {
     await ctx.reply(
       `Asosiy menyuga o'tdingiz`,
-      Markup.keyboard([['reyting qoldirish', `Menyularni ko'rish`]]).resize(),
+      Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
     );
   }
 
