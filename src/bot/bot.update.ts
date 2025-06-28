@@ -193,6 +193,10 @@ export class BotUpdate {
   onMenue(@Ctx() ctx: IMyContext) {
     if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Menyu';
+      ctx.reply(
+        `Siz asosiy sahifaga o'tdingiz`,
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+      );
       return this.botService.onAdmineditMenyu(ctx);
     } else {
       ctx.session.stepUser = 'menyu';
@@ -201,11 +205,19 @@ export class BotUpdate {
   }
   @Command('info')
   onInfo(@Ctx() ctx: IMyContext) {
+    ctx.reply(
+      `Siz asosiy sahifaga o'tdingiz`,
+      Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+    );
     return this.botService.onInfo(ctx);
   }
   @Command('help')
   OnHelp(@Ctx() ctx: IMyContext) {
     if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
+      ctx.reply(
+        `Siz asosiy sahifaga o'tdingiz`,
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+      );
       return this.botService.OnHelp(ctx);
     } else {
       return this.botService.onhelp(ctx);
@@ -284,7 +296,8 @@ export class BotUpdate {
       const menu = await this.prisma.menyu.findUnique({ where: { id } });
 
       if (!menu) {
-        return ctx.reply('❌ Bu menyu topilmadi.');
+         ctx.reply('❌ Bu menyu topilmadi.');
+         return
       }
 
       await this.prisma.menyu.delete({ where: { id } });
@@ -302,7 +315,8 @@ export class BotUpdate {
     try {
       const data = ctx.session.data;
       if (!data?.name || !data?.price || !data?.description || !data?.image) {
-        return ctx.reply(`❌ Saqlash uchun to'liq ma'lumot yo'q!`);
+         ctx.reply(`❌ Saqlash uchun to'liq ma'lumot yo'q!`);
+         return
       }
 
       const yangi = await this.prisma.menyu.create({ data });
@@ -318,7 +332,8 @@ export class BotUpdate {
       ctx.session.image = null;
     } catch (error) {
       console.error(error);
-      return ctx.reply('❌ Xatolik yuz berdi');
+       ctx.reply('❌ Xatolik yuz berdi');
+       return
     }
   }
 
@@ -327,7 +342,8 @@ export class BotUpdate {
     ctx.session.data = null;
     ctx.session.image = null;
     ctx.session.stepAdmin = 'Menyu';
-    await ctx.reply('❌ Saqlash bekor qilindi');
+     ctx.reply('❌ Saqlash bekor qilindi');
+     return
     return this.botService.onAdmineditMenyu(ctx);
   }
 
@@ -377,7 +393,8 @@ async handleMenuSelection(@Ctx() ctx: IMyContext) {
   });
 
   if (!menyu) {
-    return ctx.reply(`❌ ${menyuName} menyusi topilmadi.`);
+     ctx.reply(`❌ ${menyuName} menyusi topilmadi.`);
+     return
   }
 
   ctx.session.menuName = menyu.name!.toLowerCase();
@@ -397,13 +414,15 @@ async Reyting(@Ctx() ctx: IMyContext) {
   });
 
   if (!user) {
-    return ctx.reply('❌ Foydalanuvchi topilmadi.');
+    ctx.reply('❌ Foydalanuvchi topilmadi.');
+    return
   }
 
   const menuName = ctx.session.menuName;
 
   if (!menuName) {
-    return ctx.reply('❌ Avval menyuni tanlang.');
+    ctx.reply('❌ Avval menyuni tanlang.');
+    return
   }
 
   const menu = await this.prisma.menyu.findFirst({
@@ -411,7 +430,9 @@ async Reyting(@Ctx() ctx: IMyContext) {
   });
 
   if (!menu) {
-    return ctx.reply(`❌ ${menuName} menyusi topilmadi.`);
+     ctx.reply(`❌ ${menuName} menyusi topilmadi.`);
+     return
+
   }
 
   const existing = await this.prisma.reyting.findFirst({
@@ -419,7 +440,8 @@ async Reyting(@Ctx() ctx: IMyContext) {
   });
 
   if (existing) {
-    return ctx.reply(`❌ Siz "${menu.name}" uchun allaqachon reyting qoldirgansiz.`);
+    ctx.reply(`❌ Siz "${menu.name}" uchun allaqachon reyting qoldirgansiz.`);
+    return
   }
 
   await this.prisma.reyting.create({
