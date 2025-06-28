@@ -195,31 +195,53 @@ export class BotUpdate {
       ctx.session.stepAdmin = 'Menyu';
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
-        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+        Markup.keyboard([
+          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+        ]).resize(),
       );
       return this.botService.onAdmineditMenyu(ctx);
     } else {
       ctx.session.stepUser = 'menyu';
+      ctx.reply(
+        `Siz asosiy sahifaga o'tdingiz`,
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+      );
       return this.botService.findAll(ctx);
     }
   }
   @Command('info')
   onInfo(@Ctx() ctx: IMyContext) {
-    ctx.reply(
-      `Siz asosiy sahifaga o'tdingiz`,
-      Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
-    );
+    if(ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2){
+      ctx.reply(
+        `O'z haqingizda maluot`,
+        Markup.keyboard([
+          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+        ]).resize(),
+      );
+    }
+    else{
+      ctx.reply(
+        `O'z haqingizda maluot`,
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+      );
+    }
     return this.botService.onInfo(ctx);
   }
   @Command('help')
   OnHelp(@Ctx() ctx: IMyContext) {
     if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.reply(
-        `Siz asosiy sahifaga o'tdingiz`,
-        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+        `Yordam bo'limi`,
+        Markup.keyboard([
+          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+        ]).resize(),
       );
       return this.botService.OnHelp(ctx);
     } else {
+      ctx.reply(
+        `Yordam bo'limi`,
+        Markup.keyboard([['📊 reyting qoldirish', `📖 Menyularni ko'rish`, "🙋🏼‍♂️ Help"]]).resize(),
+      );
       return this.botService.onhelp(ctx);
     }
   }
