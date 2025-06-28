@@ -10,7 +10,7 @@ export class UtilService implements OnModuleInit {
     await this.Bot.telegram.setMyCommands([
       { command: '/start', description: 'Botni boshlash' },
       { command: '/menyu', description: "Menyuga o'tish" },
-      { command: '/info', description: "O'zi haqida malumod" },
+      { command: '/info', description: "O'zingiz haqingizda ma'lumot" },
       { command: '/help', description: 'Yordam olish' },
     ]);
   }
