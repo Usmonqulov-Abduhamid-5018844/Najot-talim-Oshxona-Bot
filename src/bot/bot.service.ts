@@ -41,15 +41,7 @@ export class BotService {
   }
 
   async onStart(ctx: IMyContext) {
-    ctx.session.bishtex = null;
-    ctx.session.lagmon = null;
-    ctx.session.kfc = null;
-    ctx.session.jarkop = null;
-    ctx.session.osh = null;
-    ctx.session.somsa = null;
-    ctx.session.xonim = null;
     ctx.session.data = null;
-    ctx.session.lagmon = null;
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;
@@ -109,15 +101,6 @@ export class BotService {
   //******************************  USER  ************************/
 
   async onUserAllMenyu(ctx: IMyContext) {
-    ctx.session.bishtex = null;
-    ctx.session.lagmon = null;
-    ctx.session.kfc = null;
-    ctx.session.jarkop = null;
-    ctx.session.osh = null;
-    ctx.session.somsa = null;
-    ctx.session.xonim = null;
-    ctx.session.data = null;
-    ctx.session.lagmon = null;
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;
@@ -147,15 +130,6 @@ export class BotService {
   }
 
   async onhelp(ctx: IMyContext) {
-    ctx.session.bishtex = null;
-    ctx.session.lagmon = null;
-    ctx.session.kfc = null;
-    ctx.session.jarkop = null;
-    ctx.session.osh = null;
-    ctx.session.somsa = null;
-    ctx.session.xonim = null;
-    ctx.session.data = null;
-    ctx.session.lagmon = null;
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;
@@ -263,15 +237,6 @@ export class BotService {
     return;
   }
   async onInfo(ctx: IMyContext) {
-    ctx.session.bishtex = null;
-    ctx.session.lagmon = null;
-    ctx.session.kfc = null;
-    ctx.session.jarkop = null;
-    ctx.session.osh = null;
-    ctx.session.somsa = null;
-    ctx.session.xonim = null;
-    ctx.session.data = null;
-    ctx.session.lagmon = null;
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;

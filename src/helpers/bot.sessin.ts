@@ -7,13 +7,6 @@ export interface ISessin {
   image: string | null
   id: string | null
 
-  osh:string | null
-  bishtex: string | null
-  xonim: string | null
-  lagmon: string |null
-  jarkop: string |null
-  kfc: string | null
-  somsa: string |null
   stepAdmin?: string
   stepUser?: string
   menuName?: string | null;
