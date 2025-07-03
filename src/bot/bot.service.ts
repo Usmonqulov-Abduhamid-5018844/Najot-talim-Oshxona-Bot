@@ -17,7 +17,8 @@ export class BotService {
         ]).resize(),
       );
     } catch (error) {
-      return ctx.reply('❌ Xatolik yuz berdi');
+       ctx.reply('❌ Xatolik yuz berdi');
+       return
     }
   }
 
@@ -36,7 +37,8 @@ export class BotService {
         ]),
       );
     } catch (error) {
-      return ctx.reply('❌ Xatolik yuz berdi');
+       ctx.reply('❌ Xatolik yuz berdi');
+       return
     }
   }
 
@@ -75,7 +77,8 @@ export class BotService {
       await ctx.reply('Mahsulot nomini kiriting: ');
       ctx.session.name = 'name';
     } catch (error) {
-      return await ctx.reply('❌ Xatolik yuz berdi');
+       await ctx.reply('❌ Xatolik yuz berdi');
+       return
     }
   }
   async Kunlik(ctx: IMyContext) {
@@ -92,9 +95,10 @@ export class BotService {
       ctx.reply(`📊 Bugungi foydalanuvchilar soni: ${soni} ta`);
       return;
     } catch (error) {
-      return ctx.reply(
+       ctx.reply(
         `❌ Xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.`,
       );
+      return
     }
   }
 
@@ -110,7 +114,8 @@ export class BotService {
       });
 
       if (!menyular.length) {
-        return ctx.reply('❌ Hech qanday menyu topilmadi.');
+         ctx.reply('❌ Hech qanday menyu topilmadi.');
+         return
       }
 
       const buttonlar = menyular.map((menu) => [
@@ -125,7 +130,8 @@ export class BotService {
       );
     } catch (error) {
       console.error(error);
-      return ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
+       ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
+       return
     }
   }
 
@@ -354,7 +360,8 @@ export class BotService {
         });
         return;
       } else {
-        return await ctx.reply("❌ Ma'lumotlar to'liq emas!");
+         await ctx.reply("❌ Ma'lumotlar to'liq emas!");
+         return
       }
     }
 
@@ -427,8 +434,8 @@ export class BotService {
         ),
       );
     } catch (error) {
-      console.error(error);
-      return ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+       ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+       return
     }
   }
 
