@@ -365,7 +365,6 @@ export class BotUpdate {
     ctx.session.image = null;
     ctx.session.stepAdmin = 'Menyu';
      ctx.reply('❌ Saqlash bekor qilindi');
-     return
     return this.botService.onAdmineditMenyu(ctx);
   }
 
