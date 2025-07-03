@@ -34,6 +34,7 @@ export class BotService {
           [Markup.button.callback(`Ovqatlarni ko'rish`, `findAll`)],
           [Markup.button.callback(`Yangi Ovqat qo'shish`, `Create`)],
           [Markup.button.callback(`Ovqatlarni o'chirish`, `Delete`)],
+          [Markup.button.callback(`Bugun qilinadigan ovqatlar`,"Bugun")]
         ]),
       );
     } catch (error) {
@@ -114,7 +115,7 @@ export class BotService {
       });
 
       if (!menyular.length) {
-         ctx.reply('❌ Hech qanday menyu topilmadi.');
+         ctx.reply('🛑 Hozircha xech qanday menyu mavjud eman.');
          return
       }
 
@@ -408,6 +409,66 @@ export class BotService {
     return;
   }
 
+  async Bugun(ctx: IMyContext) {
+    try {
+      const menyular = await this.prisma.menyu.findMany();
+
+      if (!menyular.length) {
+        await ctx.reply('🛑 Hozircha ovqatlar mavjud emas.');
+        return;
+      }
+      ctx.session.stepAdmin = "bugun"
+      ctx.session.SS = "ss"
+      const buttons = menyular.map((menu) => [
+        Markup.button.callback(menu.name || 'Nomalum', `bugun:${menu.id}`),
+      ]);
+
+      await ctx.reply(
+        "📃 Bugun qilinatigan ovqatlarni tanlayng:",
+        Markup.inlineKeyboard(
+          menyular.map((menu) => [
+            Markup.button.callback(
+              menu.name?.trim() ? menu.name : `ID:${menu.id}`,
+              `bugun:${menu.id}`,
+            ),
+          ]),
+        ),
+      );
+      ctx.answerCbQuery()
+      ctx.reply("Menyu",Markup.keyboard([["✅ Saqlash", "Ortga"],["💎 Saralangan ovqatlar","🗑 O'chirish"]
+      ]).resize())
+    } catch (error) {
+       ctx.reply("❌ Xatolik yuz berdi? Keyinroq urinib ko'ring.");
+       return
+    }
+  }
+
+  async Saqlash(ctx: IMyContext) {
+    try {
+      const mavjudlar = await this.prisma.bugun.findMany();
+      const mavjudIds = new Set(mavjudlar.map(i => i.menyuId));
+      const sessiyaOvqatlar = ctx.session.ovqatlar || [];
+      const yangiOvqatlar = sessiyaOvqatlar.filter(id => !mavjudIds.has(id));
+      
+      if (yangiOvqatlar.length > 0) {
+        await Promise.all(
+          yangiOvqatlar.map(id => 
+            this.prisma.bugun.create({ data: { menyuId: id } })
+          )
+        );
+        ctx.session.ovqatlar = [];
+        ctx.reply("✅ Yangi ma'lumotlar saqlandi 🎉");
+      } else {
+        ctx.reply("ℹ️ Bu ovqat allaqachon tanlangan!");
+      }
+  
+    } catch (error) {
+      console.error(error);
+      ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+    }
+  }
+  
+
   async delet(ctx: IMyContext) {
     try {
       const menyular = await this.prisma.menyu.findMany();
@@ -434,7 +495,7 @@ export class BotService {
         ),
       );
     } catch (error) {
-       ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+       ctx.reply("❌ Xatolik yuz berdi? Keyinroq urinib ko'ring.");
        return
     }
   }
@@ -458,4 +519,43 @@ export class BotService {
       },
     );
   }
+
+
+  async saralanganlar(ctx: IMyContext) {
+    try {
+      const bugungiOvqatlar = await this.prisma.bugun.findMany();
+  
+      if (!bugungiOvqatlar.length) {
+        await ctx.reply('🤷‍♂️ Bugun uchun hech qanday ovqat tanlanmagan.');
+        return;
+      }
+
+      const menyuIds = bugungiOvqatlar.map(item => item.menyuId);
+  
+      const menyular = await this.prisma.menyu.findMany({
+        where: { id: { in: menyuIds } },
+      });
+  
+      if (!menyular.length) {
+        await ctx.reply("🛑 Tanlangan menyular topilmadi.");
+        return;
+      }
+  
+      const buttons = menyular.map(menu => [
+        Markup.button.callback(
+          `🗑 ${menu.name || 'Noma\'lum'}`,
+          `UU:${menu.id}`
+        )
+      ]);
+  
+      await ctx.reply(
+        "🗑 O'chirish uchun saralangan ovqatni tanlang:",
+        Markup.inlineKeyboard(buttons)
+      );
+    } catch (error) {
+      console.error(error);
+      await ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+    }
+  }
+  
 }

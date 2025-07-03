@@ -40,3 +40,8 @@ model User {
 
   Reyting Reyting[]
 }
+
+model Bugun {
+  id Int @id @default(autoincrement())
+  menyuId Int
+}

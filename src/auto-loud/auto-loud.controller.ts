@@ -49,4 +49,14 @@ export class AutoLoudController {
       console.log(error.message);
     }
   }
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    timeZone: 'Asia/Tashkent',
+  })
+  async Saralanganlar() {
+    try {
+      await this.prisma.bugun.deleteMany();
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 }
