@@ -395,9 +395,10 @@ export class BotService {
         }
       }
       await ctx.reply(
-        "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan!</b>",
+        "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan.</b>",
         { parse_mode: 'HTML' },
       );
+      return
     } catch (error) {
       await ctx.reply(
         "❗️ Xatolik yuz berdi?  Keyinroq urinib ko'ring.",

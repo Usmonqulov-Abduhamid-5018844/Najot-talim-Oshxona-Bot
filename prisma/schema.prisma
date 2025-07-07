@@ -16,7 +16,7 @@ datasource db {
 model Menyu {
   id          Int       @id @default(autoincrement())
   name        String?
-  avg_reytig  Float?    @default(0)
+  avg_reytig  Float    @default(0)
   price       Int?
   description String?
   image       String?

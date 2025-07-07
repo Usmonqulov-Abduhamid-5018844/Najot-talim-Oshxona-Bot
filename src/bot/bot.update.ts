@@ -305,7 +305,12 @@ export class BotUpdate {
   Ortga(@Ctx() ctx: IMyContext) {
     if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Menyu';
-      return this.botService.onAdmineditMenyu(ctx);
+      ctx.reply(
+        `Siz asosiy sahifadasiz`,
+        Markup.keyboard([
+          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+        ]).resize(),
+      );
     } else {
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
@@ -343,6 +348,7 @@ export class BotUpdate {
   @Action('findAll')
   find_all(@Ctx() ctx: IMyContext) {
     ctx.session.stepAdmin = 'FindAll';
+    ctx.answerCbQuery()
     ctx.reply(
       'Barcha Tavomlar',
       Markup.keyboard([['Asosiy sahifa', 'Ortga']])
@@ -474,40 +480,45 @@ export class BotUpdate {
   async saralangan(@Ctx() ctx: IMyContext) {
     try {
       const bugun = await this.prisma.bugun.findMany();
-      
-      if (!bugun.length) {
+
+      if (bugun.length == 0) {
         await ctx.reply('🤷‍♂️ Bugun qilinadigan ovqatlar tanlanmagan!');
         return;
       }
-  
+      
       for (const item of bugun) {
-        const menyu = await this.prisma.menyu.findUnique({
-          where: { id: item.menyuId },
-        });
-  
-        if (!menyu) continue;
-  
-        const text =
-          `🍽 <b>${menyu.name || "Noma'lum ovqat"}</b>\n\n` +
-          `⭐ Reyting: ${menyu.avg_reytig ?? 0}\n\n` +
-          `💰 Narxi: ${menyu.price || "Noma'lum"} so'm\n\n` +
-          `📝 ${menyu.description || 'Tavsif mavjud emas.'}\n\n` +
-          `🆔 ID: ${item.id}`;
-  
-        if (menyu.image) {
-          await ctx.replyWithPhoto(menyu.image, {
-            caption: text,
-            parse_mode: 'HTML',
+        try {
+          const menyu = await this.prisma.menyu.findUnique({
+            where: { id: item.menyuId },
           });
-        } else {
-          await ctx.reply(text, { parse_mode: 'HTML' });
+  
+          if (!menyu) continue;
+  
+          const text =
+            `🍽 <b>${menyu.name || "Noma'lum ovqat"}</b>\n\n` +
+            `⭐ Reyting: ${menyu.avg_reytig ?? 0}\n\n` +
+            `💰 Narxi: ${menyu.price || "Noma'lum"} so'm\n\n` +
+            `📝 ${menyu.description || 'Tavsif mavjud emas.'}\n\n` +
+            `🆔 ID: ${item.id}`;
+  
+          if (menyu.image) {
+            await ctx.replyWithPhoto(menyu.image, {
+              caption: text,
+              parse_mode: 'HTML',
+            });
+          } else {
+            await ctx.reply(text, { parse_mode: 'HTML' });
+          }
+        } catch (err) {
+          console.error(`Ovqatni yuborishda xato: ${item.id}`, err);
         }
       }
     } catch (error) {
       console.error(error);
-      await ctx.reply("❌ Xatolik yuz berdi. Keyinroq urinib ko'ring.");
+      await ctx.reply("❌ Umumiy xatolik yuz berdi. Keyinroq urinib ko'ring.");
     }
   }
+  
   
 
   @Hears("🗑 O'chirish")
