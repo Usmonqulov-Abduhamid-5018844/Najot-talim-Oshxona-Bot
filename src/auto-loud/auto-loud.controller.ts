@@ -16,21 +16,30 @@ export class AutoLoudController {
         _avg: { ball: true },
       });
 
-      const updates = result.map((item) => {
-        const avg =
-          item._avg.ball !== null ? parseFloat(item._avg.ball.toFixed(1)) : 0;
-
+      const allMenyular = await this.prisma.menyu.findMany({
+        select: { id: true },
+      });
+  
+      const reytingMap = new Map<number, number>();
+      result.forEach((item) => {
+        const avg = item._avg.ball ?? 0;
+        reytingMap.set(item.menyu_id, parseFloat(avg.toFixed(1)));
+      });
+  
+      const updates = allMenyular.map((menyu) => {
+        const avg = reytingMap.get(menyu.id) ?? 0;
         return this.prisma.menyu.update({
-          where: { id: item.menyu_id },
+          where: { id: menyu.id },
           data: { avg_reytig: avg },
         });
       });
-
+  
       await this.prisma.$transaction(updates);
     } catch (error) {
       console.error('❌ Xatolik:', error.message);
     }
   }
+  
 
   @Cron('0 9 * * *', {
     timeZone: 'Asia/Tashkent',

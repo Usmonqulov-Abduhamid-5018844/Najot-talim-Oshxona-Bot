@@ -383,7 +383,9 @@ export class BotService {
       }
 
       for (const item of menyular) {
-        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}`;
+        const reyting = await this.prisma.reyting.findMany({where:{menyu_id:item.id}})
+
+        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}\n\n👁 ko'rilgan: ${reyting.length ? reyting.length : 0}`;
 
         if (item.image) {
           await ctx.replyWithPhoto(item.image, {
