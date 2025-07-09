@@ -617,7 +617,7 @@ export class BotUpdate {
     });
 
     if (existing) {
-      ctx.reply(`❌ Siz "${menu.name}" uchun allaqachon reyting qoldirgansiz.`);
+      ctx.reply(`😊 Siz "${menu.name}" uchun allaqachon reyting qoldirgansiz.`);
       return;
     }
 
