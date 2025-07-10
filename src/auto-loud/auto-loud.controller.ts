@@ -41,7 +41,7 @@ export class AutoLoudController {
   }
   
 
-  @Cron('0 9 * * *', {
+  @Cron('0 9 * * 1', {
     timeZone: 'Asia/Tashkent',
   })
   async DeletReyting() {
