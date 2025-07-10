@@ -14,7 +14,7 @@ export class BotService {
       ctx.reply(
         `Siz asosiy sahifadasiz`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
     } catch (error) {
@@ -94,7 +94,7 @@ export class BotService {
 
       const soni = kunlikFoydalanuvchilar.length;
 
-      ctx.reply(`📊 Bugungi foydalanuvchilar soni: ${soni} ta`);
+      ctx.reply(`📊 Haftalik foydalanuvchilar soni: ${soni} ta`);
       return;
     } catch (error) {
        ctx.reply(
@@ -106,36 +106,66 @@ export class BotService {
 
   //******************************  USER  ************************/
 
-  async onUserAllMenyu(ctx: IMyContext) {
+
+  async onUserAllMenyu(ctx: IMyContext, page = 1) {
     ctx.session.id = null;
     ctx.session.image = null;
     ctx.session.description = null;
+  
     try {
+      const PAGE_SIZE = 5;
+  
+      const totalItems = await this.prisma.menyu.count();
+      const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  
       const menyular = await this.prisma.menyu.findMany({
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
         orderBy: { id: 'asc' },
       });
-
+  
       if (!menyular.length) {
-         ctx.reply('🛑 Hozircha xech qanday menyu mavjud eman.');
-         return
+        await ctx.reply('🛑 Hozircha xech qanday menyu mavjud emas.');
+        return;
       }
-
-      const buttonlar = menyular.map((menu) => [
+  
+      const buttonlar: InlineKeyboardButton[][] = menyular.map((menu) => [
         Markup.button.callback(menu.name!, `menu:${menu.name!.toLowerCase()}`),
       ]);
-
-      buttonlar.push([Markup.button.callback('Ortga', 'ortga')]);
-
+  
+      const row: InlineKeyboardButton[] = [];
+  
+      if (page > 1) {
+        row.push({
+          text: '⬅️ Oldingi',
+          callback_data: `menyu_PAGE_${page - 1}`,
+        });
+      }
+  
+      if (page < totalPages) {
+        row.push({
+          text: 'Keyingi ➡️',
+          callback_data: `menyu_PAGE_${page + 1}`,
+        });
+      }
+  
+      if (row.length) {
+        buttonlar.push(row);
+      }
+  
       await ctx.reply(
-        `Ushbu menyulardan birini tanlang 👇`,
+        `Ushbu menyulardan birini tanlang 👇\n📄 Sahifa: ${page}/${totalPages}`,
         Markup.inlineKeyboard(buttonlar),
       );
     } catch (error) {
       console.error(error);
-       ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
-       return
+      await ctx.reply(`❌ Xatolik yuz berdi. Qaytadan urinib ko'ring.`);
     }
   }
+  
+
+
+
 
   async onhelp(ctx: IMyContext) {
     ctx.session.id = null;
@@ -432,7 +462,7 @@ export class BotService {
   
       if (page === 1) {
         await ctx.reply(
-          "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan.</b>",
+          "📢 <b>Bu haftadagi reyting g'oliblari yuqorida joylashgan.</b>",
           { parse_mode: 'HTML' },
         );
       }

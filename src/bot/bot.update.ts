@@ -38,7 +38,7 @@ export class BotUpdate {
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
     } else {
@@ -52,7 +52,7 @@ export class BotUpdate {
   @Hears('Ortga')
   async OnOrqaga(@Ctx() ctx: IMyContext) {
     const asosiyMenu = Markup.keyboard([
-      ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+      ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
     ]).resize();
     if (ctx.session.stepAdmin === 'Menyu') {
       ctx.session.stepAdmin = 'Asosiy';
@@ -185,34 +185,37 @@ export class BotUpdate {
   @Hears("📖 Menyularni ko'rish")
   OnMenyuler(@Ctx() ctx: IMyContext) {
     ctx.session.stepUser = 'menyu';
-    ctx.reply(`Menuylar`, Markup.keyboard([['🔙 ortga',"🍱 Bugun qilinadigan ovqatlar"]]).resize());
+    ctx.reply(
+      `Menuylar`,
+      Markup.keyboard([['🔙 ortga', '🍱 Bugun qilinadigan ovqatlar']]).resize(),
+    );
     return this.botService.findAll(ctx);
   }
 
-  @Hears("🍱 Bugun qilinadigan ovqatlar")
-  async onOnqatlar(@Ctx() ctx:IMyContext){
+  @Hears('🍱 Bugun qilinadigan ovqatlar')
+  async onOnqatlar(@Ctx() ctx: IMyContext) {
     try {
       const bugun = await this.prisma.bugun.findMany();
-      
+
       if (!bugun.length) {
         await ctx.reply('🤷‍♂️ Bugun qilinadigan ovqatlar elon qilinmagan!');
         return;
       }
-  
+
       for (const item of bugun) {
         const menyu = await this.prisma.menyu.findUnique({
           where: { id: item.menyuId },
         });
-  
+
         if (!menyu) continue;
-  
+
         const text =
           `🍽 <b>${menyu.name || "Noma'lum ovqat"}</b>\n\n` +
           `⭐ Reyting: ${menyu.avg_reytig ?? 0}\n\n` +
           `💰 Narxi: ${menyu.price || "Noma'lum"} so'm\n\n` +
           `📝 ${menyu.description || 'Tavsif mavjud emas.'}\n\n` +
           `🆔 ID: ${item.id}`;
-  
+
         if (menyu.image) {
           await ctx.replyWithPhoto(menyu.image, {
             caption: text,
@@ -228,15 +231,17 @@ export class BotUpdate {
     }
   }
 
-  @Hears('Kunlik foydalanuvchilar')
+  @Hears('Haftalik foydalanuvchilar')
   Kunlik(@Ctx() ctx: IMyContext) {
-    if(ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2){
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
       ctx.session.stepAdmin = 'Kunlik_foydalanuvchilar';
-      ctx.reply('Kunlik foydalanuvchilar', Markup.keyboard([['Ortga']]).resize());
+      ctx.reply(
+        'Haftalik foydalanuvchilar',
+        Markup.keyboard([['Ortga']]).resize(),
+      );
       return this.botService.Kunlik(ctx);
-    }
-    else{
-      ctx.reply("🚫 Bunday buyruq mavjud emas")
+    } else {
+      ctx.reply('🚫 Bunday buyruq mavjud emas');
     }
   }
 
@@ -247,7 +252,7 @@ export class BotUpdate {
       ctx.reply(
         `Siz asosiy sahifaga o'tdingiz`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
       return this.botService.onAdmineditMenyu(ctx);
@@ -268,7 +273,7 @@ export class BotUpdate {
       ctx.reply(
         `O'z haqingizda maluot`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
     } else {
@@ -287,7 +292,7 @@ export class BotUpdate {
       ctx.reply(
         `Yordam bo'limi`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
       return this.botService.OnHelp(ctx);
@@ -308,7 +313,7 @@ export class BotUpdate {
       ctx.reply(
         `Siz asosiy sahifadasiz`,
         Markup.keyboard([
-          ['Reyting', 'Kunlik foydalanuvchilar', 'Menyu'],
+          ['Reyting', 'Haftalik foydalanuvchilar', 'Menyu'],
         ]).resize(),
       );
     } else {
@@ -329,6 +334,18 @@ export class BotUpdate {
       return;
     }
   }
+  @On('document')
+  async onDocument(@Ctx() ctx: IMyContext) {
+    if (ctx.from?.id == ChatID_1 || ctx.from?.id == ChatID_2) {
+      if (ctx.session.image === 'img') {
+        await ctx.reply(
+          '❌ Iltimos, rasmni rasm sifatida yuboring. Fayl sifatida emas.',
+        );
+      } else {
+        await ctx.reply('❌ Bu botda fayl yuborish mumkin emas.');
+      }
+    }
+  }
 
   @Action('Create')
   async createAction(@Ctx() ctx: IMyContext) {
@@ -346,27 +363,27 @@ export class BotUpdate {
     }
   }
 
-@Action(/menyu_page_\d+/)
-async onMenyuPage(@Ctx() ctx: IMyContext) {
-  const data = (ctx.callbackQuery as any)?.data;
+  @Action(/menyu_page_\d+/)
+  async onMenyuPage(@Ctx() ctx: IMyContext) {
+    const data = (ctx.callbackQuery as any)?.data;
     const match = data?.match(/menyu_page_(\d+)/);
     const page = match ? parseInt(match[1]) : 1;
-  await this.botService.findAll(ctx, page);
-  await ctx.answerCbQuery()
-}
+    await this.botService.findAll(ctx, page);
+    await ctx.answerCbQuery();
+  }
 
-@Action('findAll')
-find_all(@Ctx() ctx: IMyContext) {
-  ctx.session.stepAdmin = 'FindAll';
-  ctx.answerCbQuery()
-  ctx.reply(
-    'Barcha Tavomlar',
-    Markup.keyboard([['Asosiy sahifa', 'Ortga']])
-      .resize()
-      .oneTime(),
-  );
-  return this.botService.findAll(ctx);
-}
+  @Action('findAll')
+  find_all(@Ctx() ctx: IMyContext) {
+    ctx.session.stepAdmin = 'FindAll';
+    ctx.answerCbQuery();
+    ctx.reply(
+      'Barcha Tavomlar',
+      Markup.keyboard([['Asosiy sahifa', 'Ortga']])
+        .resize()
+        .oneTime(),
+    );
+    return this.botService.findAll(ctx);
+  }
 
   @Action('Delete')
   delet(@Ctx() ctx: IMyContext) {
@@ -487,7 +504,7 @@ find_all(@Ctx() ctx: IMyContext) {
     }
   }
 
-  @Hears("💎 Saralangan ovqatlar")
+  @Hears('💎 Saralangan ovqatlar')
   async saralangan(@Ctx() ctx: IMyContext) {
     try {
       const bugun = await this.prisma.bugun.findMany();
@@ -496,22 +513,22 @@ find_all(@Ctx() ctx: IMyContext) {
         await ctx.reply('🤷‍♂️ Bugun qilinadigan ovqatlar tanlanmagan!');
         return;
       }
-      
+
       for (const item of bugun) {
         try {
           const menyu = await this.prisma.menyu.findUnique({
             where: { id: item.menyuId },
           });
-  
+
           if (!menyu) continue;
-  
+
           const text =
             `🍽 <b>${menyu.name || "Noma'lum ovqat"}</b>\n\n` +
             `⭐ Reyting: ${menyu.avg_reytig ?? 0}\n\n` +
             `💰 Narxi: ${menyu.price || "Noma'lum"} so'm\n\n` +
             `📝 ${menyu.description || 'Tavsif mavjud emas.'}\n\n` +
             `🆔 ID: ${item.id}`;
-  
+
           if (menyu.image) {
             await ctx.replyWithPhoto(menyu.image, {
               caption: text,
@@ -529,8 +546,6 @@ find_all(@Ctx() ctx: IMyContext) {
       await ctx.reply("❌ Umumiy xatolik yuz berdi. Keyinroq urinib ko'ring.");
     }
   }
-  
-  
 
   @Hears("🗑 O'chirish")
   Ondelete(@Ctx() ctx: IMyContext) {
@@ -572,6 +587,15 @@ find_all(@Ctx() ctx: IMyContext) {
         ['📊 reyting qoldirish', `📖 Menyularni ko'rish`, '🙋🏼‍♂️ Help'],
       ]).resize(),
     );
+  }
+  @Action(/menyu_PAGE_\d+/)
+  async onMenyuPagination(@Ctx() ctx: IMyContext) {
+    const data = (ctx.callbackQuery as any)?.data;
+    const match = data?.match(/menyu_PAGE_(\d+)/);
+    const page = match ? parseInt(match[1]) : 1;
+
+    await this.botService.onUserAllMenyu(ctx, page);
+    await ctx.answerCbQuery();
   }
 
   @Action(/^menu:.+/)
