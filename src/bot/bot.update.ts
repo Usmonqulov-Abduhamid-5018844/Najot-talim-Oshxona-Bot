@@ -345,18 +345,29 @@ export class BotUpdate {
       return;
     }
   }
-  @Action('findAll')
-  find_all(@Ctx() ctx: IMyContext) {
-    ctx.session.stepAdmin = 'FindAll';
-    ctx.answerCbQuery()
-    ctx.reply(
-      'Barcha Tavomlar',
-      Markup.keyboard([['Asosiy sahifa', 'Ortga']])
-        .resize()
-        .oneTime(),
-    );
-    return this.botService.findAll(ctx);
-  }
+
+@Action(/menyu_page_\d+/)
+async onMenyuPage(@Ctx() ctx: IMyContext) {
+  const data = (ctx.callbackQuery as any)?.data;
+    const match = data?.match(/menyu_page_(\d+)/);
+    const page = match ? parseInt(match[1]) : 1;
+  await this.botService.findAll(ctx, page);
+  await ctx.answerCbQuery()
+}
+
+@Action('findAll')
+find_all(@Ctx() ctx: IMyContext) {
+  ctx.session.stepAdmin = 'FindAll';
+  ctx.answerCbQuery()
+  ctx.reply(
+    'Barcha Tavomlar',
+    Markup.keyboard([['Asosiy sahifa', 'Ortga']])
+      .resize()
+      .oneTime(),
+  );
+  return this.botService.findAll(ctx);
+}
+
   @Action('Delete')
   delet(@Ctx() ctx: IMyContext) {
     ctx.answerCbQuery();

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IMyContext } from 'src/helpers/bot.sessin';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Markup } from 'telegraf';
+import { InlineKeyboardButton } from 'telegraf/typings/core/types/typegram';
 
 @Injectable()
 export class BotService {
@@ -371,22 +372,31 @@ export class BotService {
     return;
   }
 
-  async findAll(ctx: IMyContext) {
+  async findAll(ctx: IMyContext, page = 1) {
     try {
+      const PAGE_SIZE = 5;
+  
+      const totalItems = await this.prisma.menyu.count();
+      const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  
       const menyular = await this.prisma.menyu.findMany({
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
         orderBy: { avg_reytig: 'desc' },
       });
-
+  
       if (!menyular.length) {
         await ctx.reply('🛑 Hozircha ovqatlar mavjud emas.');
         return;
       }
-
+  
       for (const item of menyular) {
-        const reyting = await this.prisma.reyting.findMany({where:{menyu_id:item.id}})
-
-        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}\n\n👁 ko'rilgan: ${reyting.length ? reyting.length : 0}`;
-
+        const reyting = await this.prisma.reyting.findMany({
+          where: { menyu_id: item.id },
+        });
+  
+        const caption = `🍽 <b>${item.name}</b>\n\n💰 Narxi: ${item.price} so'm\n\n📝 Tavsif: ${item.description}\n\n📈 reyting: ${item.avg_reytig}\n\n🆔 ID: ${item.id}\n\n👁 ko'rilgan: ${reyting.length || 0}`;
+  
         if (item.image) {
           await ctx.replyWithPhoto(item.image, {
             caption,
@@ -396,20 +406,43 @@ export class BotService {
           await ctx.reply(caption, { parse_mode: 'HTML' });
         }
       }
-      await ctx.reply(
-        "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan.</b>",
-        { parse_mode: 'HTML' },
-      );
-      return
+  
+      const buttons: InlineKeyboardButton[][] = [];
+      const row: InlineKeyboardButton[] = [];
+  
+      if (page > 1)
+        row.push({
+          text: '⬅️ Oldingi',
+          callback_data: `menyu_page_${page - 1}`,
+        });
+  
+      if (page < totalPages)
+        row.push({
+          text: 'Keyingi ➡️',
+          callback_data: `menyu_page_${page + 1}`,
+        });
+  
+      if (row.length) buttons.push(row);
+  
+      await ctx.reply(`📊 Sahifa: ${page} / ${totalPages}`, {
+        reply_markup: {
+          inline_keyboard: buttons,
+        },
+      });
+  
+      if (page === 1) {
+        await ctx.reply(
+          "📢 <b>Bugungi reyting g'oliblari yuqorida joylashgan.</b>",
+          { parse_mode: 'HTML' },
+        );
+      }
     } catch (error) {
+      console.error(error);
       await ctx.reply(
-        "❗️ Xatolik yuz berdi?  Keyinroq urinib ko'ring.",
-        Markup.keyboard([['Orqaga qaytish']])
-          .resize()
-          .oneTime(),
+        "❗️ Xatolik yuz berdi. Keyinroq urinib ko'ring.",
+        Markup.keyboard([['Orqaga qaytish']]).resize().oneTime(),
       );
     }
-    return;
   }
 
   async Bugun(ctx: IMyContext) {
